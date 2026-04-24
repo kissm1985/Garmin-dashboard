@@ -1,16 +1,28 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hu">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Garmin AI Dashboard</title>
-  <link rel="stylesheet" href="style.css?v=7" />
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Garmin AI Dashboard</title>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f4f7fb;color:#111827}.wrap{max-width:900px;margin:auto;padding:20px}.hero{background:linear-gradient(135deg,#1e40af,#2563eb);color:white;border-radius:22px;padding:22px;margin-bottom:16px}.hero h1{margin:0;font-size:28px}.hero p{margin:8px 0 0;opacity:.9}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.card,.panel{background:white;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(15,23,42,.07)}.card span{display:block;color:#667085;font-size:14px}.card b{display:block;font-size:30px;margin:8px 0}.card small{color:#667085}.panel{margin-top:16px}.panel h2{margin:0 0 10px}.advice{background:#eef4ff;border-radius:14px;padding:14px;line-height:1.45}.score{margin:12px 0}.row{display:flex;justify-content:space-between}.bar{height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:#2563eb}.foot{text-align:center;color:#667085;font-size:13px;padding:20px}@media(min-width:760px){.grid{grid-template-columns:repeat(3,1fr)}}
+</style>
 </head>
 <body>
-  <div id="root"><div class="container">Dashboard betöltése...</div></div>
-  <script type="text/babel" src="app.jsx?v=7"></script>
+<div class="wrap">
+  <section class="hero"><h1>Garmin AI Dashboard</h1><p id="date">Napi állapot és edzésjavaslat</p></section>
+  <section class="grid" id="cards"></section>
+  <section class="panel"><h2>AI napi ajánlás</h2><div class="advice" id="advice">Betöltés...</div></section>
+  <section class="panel"><h2>Regenerációs jelzőlámpa</h2><div id="scores"></div></section>
+  <div class="foot">Stabil no-cache verzió · adatforrás: garmin_daily_latest.json</div>
+</div>
+<script>
+const fallback={steps:8420,calories:2350,sleepHours:7.2,restingHeartRate:54,stress:38,bodyBattery:72};
+function advice(d){if((d.sleepHours||0)<6)return 'Kevés alvás látszik. Ma inkább regeneráló napot vagy könnyű technikai squash-t javaslok.';if((d.stress||0)>70)return 'Magas stresszszint látszik. Ma kerüld a maximális intenzitást, legyen több pihenő.';if((d.bodyBattery||0)<40)return 'Alacsony Body Battery. Ma ne menj maxon squashban, inkább mobilitás és könnyű mozgás.';return 'Jó állapot látszik. Mehet a normál aktivitás, akár squash is, de figyelj a hidratálásra.'}
+function card(t,v,u){return '<div class="card"><span>'+t+'</span><b>'+(v??'-')+'</b><small>'+u+'</small></div>'}
+function score(t,v){v=Math.max(0,Math.min(100,Math.round(v||0)));return '<div class="score"><div class="row"><span>'+t+'</span><b>'+v+'</b></div><div class="bar"><i style="width:'+v+'%"></i></div></div>'}
+async function init(){let d=fallback;try{const r=await fetch('garmin_daily_latest.json?ts='+Date.now(),{cache:'no-store'});if(r.ok)d=await r.json()}catch(e){}document.getElementById('date').textContent=new Date().toLocaleDateString('hu-HU')+' · alvás, stressz, energia és squash ajánlás';document.getElementById('cards').innerHTML=card('Lépések',d.steps,'lépés')+card('Kalória',d.calories,'kcal')+card('Alvás',d.sleepHours,'óra')+card('Nyugalmi pulzus',d.restingHeartRate,'bpm')+card('Stressz',d.stress,'/100')+card('Body Battery',d.bodyBattery,'/100');document.getElementById('advice').textContent=advice(d);document.getElementById('scores').innerHTML=score('Alvás',((d.sleepHours||0)/8)*100)+score('Stressz',100-(d.stress||0))+score('Energia',d.bodyBattery||0)}
+init();
+</script>
 </body>
 </html>
